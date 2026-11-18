@@ -1,0 +1,9 @@
+target/
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# assignment brief (contains private emails)
+readme.md.txt
+Snack_Counter_Exercise_1.0.pdf
