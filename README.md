@@ -1,64 +1,51 @@
 # Snack Counter Automation
 
-Take-home assignment for Framsikt. The design is in **[DESIGN.md](DESIGN.md)** (also as `DESIGN.pdf`).
+Framsikt take-home. The design document is **[DESIGN.pdf](DESIGN.pdf)** (same content in [DESIGN.md](DESIGN.md)).
 
-Core logic in plain Java 17 (no frameworks), with simulated chat tool, HR system, calendar and FX rates.
+## How to test
 
-## Run
+You only need **Java 17 or newer**. No Maven install needed: `mvnw` downloads it on first run.
 
-Requires only **JDK 17+**. The Maven Wrapper downloads Maven automatically on first run.
-On Windows use `mvnw.cmd`, on macOS/Linux `./mvnw`.
+| | Windows | macOS / Linux |
+|---|---|---|
+| **1. Run the tests** (41) | `mvnw.cmd test` | `./mvnw test` |
+| **2. Watch a scripted demo** | `mvnw.cmd -q compile exec:java` | `./mvnw -q compile exec:java` |
+| **3. Try it yourself** | `mvnw.cmd -q compile exec:java "-Dexec.args=interactive"` | `./mvnw -q compile exec:java -Dexec.args=interactive` |
 
-```bash
-./mvnw test                                           # 41 tests
-./mvnw -q compile exec:java                           # scripted walkthrough of the main scenarios
-./mvnw -q compile exec:java "-Dexec.args=interactive" # interactive console (play the chat bot yourself)
-```
+### Try it yourself (step 3)
 
-## Interactive console
-
-You type what people would do in chat; every message the system sends is printed. Time only moves
-when you type `wait`, which also runs the scheduler (timeouts, retries, escalations).
+The console stands in for the company chat. You type what people do, and it prints every message
+the system would send. Paste these lines one at a time:
 
 ```
-> empty OSL someone          # box reported empty -> one volunteer is offered the refill
-> accept R-1 lars            # REFUSED: offered to someone else
-> accept R-1 ingrid          # committed; channel told nobody else should buy
-> wait 25h                   # no receipt in 24h -> handed to the next person
-> buy R-1 lars 850 fruit     # receipt -> HR claim filed automatically
-> hr HR-1 approve            # reimbursed
-> budget / status / people / history R-1 / report / help / quit
+empty OSL someone          Oslo box is empty -> Ingrid is asked to buy
+accept R-1 lars            refused: it was offered to Ingrid, not Lars
+wait 4h                    Ingrid did not answer -> Lars is asked
+accept R-1 lars            Lars commits; channel: "no need for anyone else to buy"
+buy R-1 lars 850 fruit     receipt uploaded -> HR claim filed automatically
+budget                     850 NOK spent, 5150 NOK left this month
+hr HR-1 approve            HR approves -> Lars is reimbursed
+report                     monthly report across NOK and INR
+quit
 ```
 
-Other useful commands: `decline`, `away <who> <days>`, `visit <who> <OSL|BLR> <days>`,
-`approve <refillId> <coordinator>` (over-budget receipts), `hrdown <n>` (simulate HR outage).
-
-## Code map
-
-```
-src/main/java/com/framsikt/snack/
-  domain/   Money, Office, Volunteer, Purchase, RefillRequest (aggregate + audit trail), RefillStatus (state machine)
-  port/     interfaces to the outside world: ChatNotifier, HrClient, AvailabilityProvider, FxRateProvider,
-            VolunteerDirectory, RefillRepository
-  adapter/  simulated implementations: FakeChatNotifier, FakeHrSystem, InMemory*, FixedFxRateProvider, MutableClock
-  service/  RefillService (lifecycle, locking, timeouts), VolunteerSelector (who buys),
-            BudgetService (budget check), ReportService (monthly report), SnackConfig (business rules)
-  SnackSystem.java  composition root (wiring)
-  App.java          runnable demo
-  Console.java      interactive console (stands in for the chat bot)
-```
+Type `help` for all commands (holidays, visiting the other office, HR outage, over-budget approval).
 
 ## What the tests prove
 
-| Rule | Test |
+| Rule | Test class |
 |---|---|
-| Two people cannot both commit to the same refill (incl. a concurrent race) | `RefillLifecycleTest.SingleCommitter` |
-| A second "empty" report does not create a second refill | `RefillLifecycleTest.second_empty_report_reuses_the_open_refill` |
-| A refill nobody completes is handed to someone else (decline, offer timeout, purchase timeout) | `RefillLifecycleTest.Handover` |
-| Nobody available → escalates once; anyone present can take it | `RefillLifecycleTest.Handover` |
-| HR outage retried without duplicate claims; stale claims escalated | `RefillLifecycleTest.HrIntegration` |
-| Fair selection, holiday/remote skipped, visitors included | `VolunteerSelectorTest` |
-| Budget reserved before spend, cap, block + month rollover, over-budget approval | `BudgetAndCurrencyTest` |
-| Totals correct across NOK and INR; rate frozen at purchase; office time zones | `BudgetAndCurrencyTest` |
-| Currencies cannot be mixed; invalid state transitions rejected | `MoneyTest`, `RefillStatusTest` |
-| Console drives the full flow and explains bad input | `ConsoleTest` |
+| Two people cannot both commit to the same refill (incl. a real concurrent race) | `RefillLifecycleTest` |
+| A refill nobody completes is handed to someone else | `RefillLifecycleTest` |
+| Fair choice of buyer; people on holiday skipped; visitors included | `VolunteerSelectorTest` |
+| Budget is checked before money is spent; totals correct across NOK and INR | `BudgetAndCurrencyTest` |
+
+## Where to look in the code
+
+All under `src/main/java/com/framsikt/snack/`:
+
+- `service/RefillService.java`: the refill lifecycle (empty → reimbursed), timeouts and locking
+- `service/VolunteerSelector.java`: who is asked to buy
+- `service/BudgetService.java`: the budget check
+- `domain/`: the core types (`Money`, `RefillRequest`, `RefillStatus` state machine)
+- `adapter/`: the simulated chat tool and HR system
