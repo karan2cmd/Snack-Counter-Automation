@@ -2,6 +2,7 @@ package com.framsikt.snack.adapter;
 
 import com.framsikt.snack.port.ChatNotifier;
 
+import java.io.PrintStream;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -16,14 +17,14 @@ public final class FakeChatNotifier implements ChatNotifier {
     }
 
     private final List<Message> messages = new CopyOnWriteArrayList<>();
-    private final boolean echo;
+    private final PrintStream echo;
 
     public FakeChatNotifier() {
-        this(false);
+        this(null);
     }
 
-    /** @param echo also print every message to stdout (used by the demo) */
-    public FakeChatNotifier(boolean echo) {
+    /** @param echo where to also print every message (demo / console); {@code null} = silent */
+    public FakeChatNotifier(PrintStream echo) {
         this.echo = echo;
     }
 
@@ -39,8 +40,8 @@ public final class FakeChatNotifier implements ChatNotifier {
 
     private void record(Message m) {
         messages.add(m);
-        if (echo) {
-            System.out.println("  [chat] " + m);
+        if (echo != null) {
+            echo.println("  [chat] " + m);
         }
     }
 

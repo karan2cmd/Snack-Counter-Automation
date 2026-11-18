@@ -18,8 +18,12 @@ public final class App {
 
     private App() {}
 
-    public static void main(String[] args) {
-        SnackSystem s = new SnackSystem(SnackConfig.defaults(), Instant.parse("2026-11-02T08:00:00Z"), true);
+    public static void main(String[] args) throws java.io.IOException {
+        if (args.length > 0 && args[0].equalsIgnoreCase("interactive")) {
+            Console.main(new String[0]);
+            return;
+        }
+        SnackSystem s = new SnackSystem(SnackConfig.defaults(), Instant.parse("2026-11-02T08:00:00Z"), System.out);
         s.volunteers.add(new Volunteer("ingrid", "Ingrid", OSLO))
                 .add(new Volunteer("lars", "Lars", OSLO))
                 .add(new Volunteer("priya", "Priya", BENGALURU))

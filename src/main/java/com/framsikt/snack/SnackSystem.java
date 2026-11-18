@@ -13,6 +13,7 @@ import com.framsikt.snack.service.ReportService;
 import com.framsikt.snack.service.SnackConfig;
 import com.framsikt.snack.service.VolunteerSelector;
 
+import java.io.PrintStream;
 import java.time.Instant;
 import java.util.Currency;
 
@@ -35,10 +36,11 @@ public final class SnackSystem {
     public final RefillService service;
     public final ReportService reports;
 
-    public SnackSystem(SnackConfig config, Instant start, boolean echoChat) {
+    /** @param chatEcho where simulated chat messages are printed, or {@code null} for silent */
+    public SnackSystem(SnackConfig config, Instant start, PrintStream chatEcho) {
         this.config = config;
         this.clock = new MutableClock(start);
-        this.chat = new FakeChatNotifier(echoChat);
+        this.chat = new FakeChatNotifier(chatEcho);
         // Illustrative rate: 1 INR = 0.125 NOK (i.e. 8 INR per NOK). Configurable in production.
         this.fx = new FixedFxRateProvider(Currency.getInstance("NOK"))
                 .withRate(Currency.getInstance("INR"), "0.125");
@@ -49,6 +51,6 @@ public final class SnackSystem {
     }
 
     public static SnackSystem withDefaults(Instant start) {
-        return new SnackSystem(SnackConfig.defaults(), start, false);
+        return new SnackSystem(SnackConfig.defaults(), start, null);
     }
 }
