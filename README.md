@@ -8,9 +8,9 @@ You only need **Java 17 or newer**. No Maven install needed: `mvnw` downloads it
 
 | | Windows | macOS / Linux |
 |---|---|---|
-| **1. Run the tests** (41) | `mvnw.cmd test` | `./mvnw test` |
-| **2. Watch a scripted demo** | `mvnw.cmd -q compile exec:java` | `./mvnw -q compile exec:java` |
-| **3. Try it yourself** | `mvnw.cmd -q compile exec:java "-Dexec.args=interactive"` | `./mvnw -q compile exec:java -Dexec.args=interactive` |
+| **1. Run the tests** (41) | `.\mvnw.cmd test` | `./mvnw test` |
+| **2. Watch a scripted demo** | `.\mvnw.cmd -q compile exec:java` | `./mvnw -q compile exec:java` |
+| **3. Try it yourself** | `.\mvnw.cmd -q compile exec:java "-Dexec.args=interactive"` | `./mvnw -q compile exec:java -Dexec.args=interactive` |
 
 ### Try it yourself (step 3)
 
